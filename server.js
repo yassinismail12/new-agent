@@ -7,10 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ✅ Replace the values below with your real tokens and IDs
-const VERIFY_TOKEN = "agentive123-secure"; // Use this in Facebook setup
-const PAGE_ACCESS_TOKEN = "EAAJZBunZAr0lcBOxsZCIGz5O1STTn9hDlg108Ojw9taXCfWDGBfjbZC2ZA4YgCwYPEXoYHtLsW5TK5053k9nSFFaqujZAmMPRcgZAqAFpbLCb4Xy30mw22jYBUgaEiKwBOFbiGtvq9xhYg2klzOKN8a2Cxhtw9ne1LxwuVSnzJ95bTqMn1eKLCMc4TTFqs5dN4arZBHlYAZDZD";
-const AGENTIVE_API_KEY = "f701ce40-6cc4-45c3-b5ae-cf6cc6273aca";
-const AGENTIVE_ASSISTANT_ID = "92b67900-f81b-4be6-b5dc-13e4e7a1dc59";
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // Use this in Facebook setup
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const AGENTIVE_API_KEY = process.env.AGENTIVE_API_KEY;
+const AGENTIVE_ASSISTANT_ID = process.env.AGENTIVE_ASSISTANT_ID;
 
 app.use(bodyParser.json());
 
@@ -74,3 +74,34 @@ app.post('/webhook', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server is running at http://localhost:${PORT}`);
 });
+const postback = messaging?.postback?.payload;
+
+if (postback === "GET_STARTED") {
+    await axios.post(
+        `https://graph.facebook.com/v17.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
+        {
+            recipient: { id: senderId },
+            message: {
+                text: "Welcome! What would you like to do today?",
+                quick_replies: [
+                    {
+                        content_type: "text",
+                        title: "View Apartments",
+                        payload: "VIEW_APARTMENTS"
+                    },
+                    {
+                        content_type: "text",
+                        title: "Book a Tour",
+                        payload: "BOOK_TOUR"
+                    },
+                    {
+                        content_type: "text",
+                        title: "Contact Agent",
+                        payload: "CONTACT_AGENT"
+                    }
+                ]
+            }
+        }
+    );
+    return res.sendStatus(200); // Stop here so Agentive doesn’t answer too
+}
