@@ -101,6 +101,7 @@ app.post('/webhook', async (req, res) => {
                 agentiveRes.data.output ||
                 agentiveRes.data.content ||
                 "Sorry, no reply from assistant.";
+            agentiveReply = agentiveReply.replace(/【.*?】/g, ''); // remove file ID blocks
 
             // Step 3: Send reply to Messenger
             await axios.post(
