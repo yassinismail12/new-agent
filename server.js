@@ -99,6 +99,7 @@ app.post('/webhook', async (req, res) => {
                 agentiveRes.data.response ||
                 agentiveRes.data.message ||
                 agentiveRes.data.output ||
+                agentiveRes.data.content ||
                 "Sorry, no reply from assistant.";
 
             // Step 3: Send reply to Messenger
