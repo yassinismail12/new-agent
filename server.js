@@ -37,7 +37,7 @@ app.post('/webhook', async (req, res) => {
     const userMessage = messaging?.message?.text;
     const postback = messaging?.postback?.payload;
 
-    // ✅ Handle GET_STARTED quick replies
+    // ✅ Handle GET_STARTED postback
     if (postback === "GET_STARTED") {
         try {
             await axios.post(
@@ -69,13 +69,13 @@ app.post('/webhook', async (req, res) => {
         } catch (err) {
             console.error("🔥 Error sending GET_STARTED reply:", err.response?.data || err.message);
         }
-        return res.sendStatus(200); // Stop here
+        return res.sendStatus(200);
     }
 
-    // ✅ Forward user message to AgentiveHub and respond
+    // ✅ Handle incoming user message
     if (userMessage && senderId) {
         try {
-            // Step 1: Start a session with Agentive
+            // Step 1: Start Agentive session
             const sessionRes = await axios.post('https://agentivehub.com/api/chat/session', {
                 api_key: AGENTIVE_API_KEY,
                 assistant_id: AGENTIVE_ASSISTANT_ID,
@@ -83,7 +83,7 @@ app.post('/webhook', async (req, res) => {
 
             const session_id = sessionRes.data.session_id;
 
-            // Step 2: Send user message
+            // Step 2: Send message to Agentive
             const agentiveRes = await axios.post('https://agentivehub.com/api/chat', {
                 api_key: AGENTIVE_API_KEY,
                 assistant_id: AGENTIVE_ASSISTANT_ID,
@@ -92,9 +92,16 @@ app.post('/webhook', async (req, res) => {
                 messages: [{ role: 'user', content: userMessage }],
             });
 
-            const agentiveReply = agentiveRes.data.response || "Sorry, no reply from assistant.";
+            console.log("📦 Agentive raw response:", agentiveRes.data);
 
-            // Send reply back to Messenger
+            // ✅ Extract Agentive reply from whatever key it uses
+            const agentiveReply =
+                agentiveRes.data.response ||
+                agentiveRes.data.message ||
+                agentiveRes.data.output ||
+                "Sorry, no reply from assistant.";
+
+            // Step 3: Send reply to Messenger
             await axios.post(
                 `https://graph.facebook.com/v17.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
                 {
