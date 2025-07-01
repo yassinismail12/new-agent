@@ -95,7 +95,7 @@ app.post('/webhook', async (req, res) => {
             console.log("📦 Agentive raw response:", agentiveRes.data);
 
             // ✅ Extract Agentive reply from whatever key it uses
-            const agentiveReply =
+            let agentiveReply =
                 agentiveRes.data.response ||
                 agentiveRes.data.message ||
                 agentiveRes.data.output ||
